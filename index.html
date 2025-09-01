@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FinanceFlow - Controle Financeiro</title>
+    <meta name="description" content="Aplicativo completo de controle financeiro com categorias, metas e relatórios detalhados">
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/date-fns@2.29.3/index.min.js"></script>
+</head>
+<body>
+    <div class="app">
+        <!-- Header Mobile -->
+        <header class="mobile-header">
+            <button class="menu-toggle" data-testid="button-menu-toggle">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+            <h1>FinanceFlow</h1>
+            <button class="theme-toggle" data-testid="button-theme-toggle">🌙</button>
+        </header>
+
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="logo">
+                <h2>FinanceFlow</h2>
+                <button class="theme-toggle desktop-theme" data-testid="button-theme-desktop">🌙</button>
+            </div>
+            
+            <div class="quick-actions">
+                <button class="btn-primary" data-testid="button-new-income" onclick="openTransactionModal('income')">
+                    + Nova Receita
+                </button>
+                <button class="btn-secondary" data-testid="button-new-expense" onclick="openTransactionModal('expense')">
+                    + Nova Despesa
+                </button>
+            </div>
+
+            <nav class="nav-menu">
+                <a href="#dashboard" class="nav-item active" data-testid="link-dashboard">
+                    <span class="nav-icon">📊</span>
+                    Dashboard
+                </a>
+                <a href="#transactions" class="nav-item" data-testid="link-transactions">
+                    <span class="nav-icon">💰</span>
+                    Transações
+                </a>
+                <a href="#categories" class="nav-item" data-testid="link-categories">
+                    <span class="nav-icon">🏷️</span>
+                    Categorias
+                </a>
+                <a href="#goals" class="nav-item" data-testid="link-goals">
+                    <span class="nav-icon">🎯</span>
+                    Metas
+                </a>
+                <a href="#reports" class="nav-item" data-testid="link-reports">
+                    <span class="nav-icon">📈</span>
+                    Relatórios
+                </a>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Dashboard Page -->
+            <div id="dashboard" class="page active">
+                <h1>Dashboard</h1>
+                
+                <!-- Financial Cards -->
+                <div class="financial-cards">
+                    <div class="card balance-card">
+                        <div class="card-header">
+                            <h3>Saldo Atual</h3>
+                            <span class="icon">💰</span>
+                        </div>
+                        <div class="card-value">
+                            <span id="total-balance" data-testid="text-total-balance">R$ 0,00</span>
+                        </div>
+                    </div>
+                    
+                    <div class="card income-card">
+                        <div class="card-header">
+                            <h3>Receitas do Mês</h3>
+                            <span class="icon">📈</span>
+                        </div>
+                        <div class="card-value">
+                            <span id="month-income" data-testid="text-month-income">R$ 0,00</span>
+                        </div>
+                    </div>
+                    
+                    <div class="card expense-card">
+                        <div class="card-header">
+                            <h3>Despesas do Mês</h3>
+                            <span class="icon">📉</span>
+                        </div>
+                        <div class="card-value">
+                            <span id="month-expenses" data-testid="text-month-expenses">R$ 0,00</span>
+                        </div>
+                    </div>
+                    
+                    <div class="card savings-card">
+                        <div class="card-header">
+                            <h3>Economias</h3>
+                            <span class="icon">🎯</span>
+                        </div>
+                        <div class="card-value">
+                            <span id="total-savings" data-testid="text-total-savings">R$ 0,00</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Charts Section -->
+                <div class="charts-section">
+                    <div class="chart-container">
+                        <h3>Gastos por Categoria</h3>
+                        <canvas id="expenseChart" data-testid="chart-expenses"></canvas>
+                    </div>
+                    <div class="chart-container">
+                        <h3>Evolução Mensal</h3>
+                        <canvas id="monthlyChart" data-testid="chart-monthly"></canvas>
+                    </div>
+                </div>
+
+                <!-- Recent Transactions -->
+                <div class="recent-transactions">
+                    <h3>Transações Recentes</h3>
+                    <div id="recent-list" data-testid="list-recent-transactions">
+                        <p class="empty-state">Nenhuma transação encontrada</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Transactions Page -->
+            <div id="transactions" class="page">
+                <h1>Transações</h1>
+                
+                <div class="page-actions">
+                    <button class="btn-primary" data-testid="button-add-transaction" onclick="openTransactionModal()">
+                        + Adicionar Transação
+                    </button>
+                    <div class="filters">
+                        <select id="type-filter" data-testid="select-type-filter">
+                            <option value="">Todos os tipos</option>
+                            <option value="income">Receitas</option>
+                            <option value="expense">Despesas</option>
+                        </select>
+                        <select id="category-filter" data-testid="select-category-filter">
+                            <option value="">Todas as categorias</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div id="transactions-list" data-testid="list-transactions">
+                    <p class="empty-state">Nenhuma transação encontrada</p>
+                </div>
+            </div>
+
+            <!-- Categories Page -->
+            <div id="categories" class="page">
+                <h1>Categorias</h1>
+                
+                <div class="page-actions">
+                    <button class="btn-primary" data-testid="button-add-category" onclick="openCategoryModal()">
+                        + Adicionar Categoria
+                    </button>
+                </div>
+
+                <div id="categories-list" data-testid="list-categories">
+                    <p class="empty-state">Nenhuma categoria encontrada</p>
+                </div>
+            </div>
+
+            <!-- Goals Page -->
+            <div id="goals" class="page">
+                <h1>Metas de Economia</h1>
+                
+                <div class="page-actions">
+                    <button class="btn-primary" data-testid="button-add-goal" onclick="openGoalModal()">
+                        + Adicionar Meta
+                    </button>
+                </div>
+
+                <div id="goals-list" data-testid="list-goals">
+                    <p class="empty-state">Nenhuma meta encontrada</p>
+                </div>
+            </div>
+
+            <!-- Reports Page -->
+            <div id="reports" class="page">
+                <h1>Relatórios</h1>
+                
+                <div class="reports-section">
+                    <div class="report-card">
+                        <h3>Resumo Financeiro</h3>
+                        <div id="financial-summary" data-testid="text-financial-summary">
+                            <p>Total de receitas: <span id="report-income">R$ 0,00</span></p>
+                            <p>Total de despesas: <span id="report-expenses">R$ 0,00</span></p>
+                            <p>Saldo líquido: <span id="report-balance">R$ 0,00</span></p>
+                        </div>
+                    </div>
+                    
+                    <div class="report-card">
+                        <h3>Categorias Mais Usadas</h3>
+                        <div id="top-categories" data-testid="list-top-categories">
+                            <p class="empty-state">Nenhuma transação encontrada</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Modals -->
+        <!-- Transaction Modal -->
+        <div id="transaction-modal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2 id="transaction-modal-title">Adicionar Transação</h2>
+                    <button class="close-btn" data-testid="button-close-transaction" onclick="closeModal('transaction-modal')">&times;</button>
+                </div>
+                <form id="transaction-form" data-testid="form-transaction">
+                    <div class="form-group">
+                        <label for="transaction-type">Tipo:</label>
+                        <select id="transaction-type" data-testid="select-transaction-type" required>
+                            <option value="">Selecione o tipo</option>
+                            <option value="income">Receita</option>
+                            <option value="expense">Despesa</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="transaction-description">Descrição:</label>
+                        <input type="text" id="transaction-description" data-testid="input-transaction-description" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="transaction-amount">Valor:</label>
+                        <input type="number" id="transaction-amount" data-testid="input-transaction-amount" step="0.01" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="transaction-category">Categoria:</label>
+                        <select id="transaction-category" data-testid="select-transaction-category" required>
+                            <option value="">Selecione a categoria</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="transaction-date">Data:</label>
+                        <input type="date" id="transaction-date" data-testid="input-transaction-date" required>
+                    </div>
+                    
+                    <div class="form-actions">
+                        <button type="button" class="btn-secondary" data-testid="button-cancel-transaction" onclick="closeModal('transaction-modal')">Cancelar</button>
+                        <button type="submit" class="btn-primary" data-testid="button-save-transaction">Salvar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Category Modal -->
+        <div id="category-modal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2>Adicionar Categoria</h2>
+                    <button class="close-btn" data-testid="button-close-category" onclick="closeModal('category-modal')">&times;</button>
+                </div>
+                <form id="category-form" data-testid="form-category">
+                    <div class="form-group">
+                        <label for="category-name">Nome:</label>
+                        <input type="text" id="category-name" data-testid="input-category-name" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="category-icon">Ícone:</label>
+                        <select id="category-icon" data-testid="select-category-icon" required>
+                            <option value="">Selecione um ícone</option>
+                            <option value="🍔">🍔 Alimentação</option>
+                            <option value="🏠">🏠 Moradia</option>
+                            <option value="🚗">🚗 Transporte</option>
+                            <option value="💊">💊 Saúde</option>
+                            <option value="🎓">🎓 Educação</option>
+                            <option value="🎬">🎬 Entretenimento</option>
+                            <option value="👕">👕 Roupas</option>
+                            <option value="💼">💼 Trabalho</option>
+                            <option value="🎁">🎁 Presentes</option>
+                            <option value="💰">💰 Investimentos</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="category-color">Cor:</label>
+                        <input type="color" id="category-color" data-testid="input-category-color" value="#3b82f6">
+                    </div>
+                    
+                    <div class="form-actions">
+                        <button type="button" class="btn-secondary" data-testid="button-cancel-category" onclick="closeModal('category-modal')">Cancelar</button>
+                        <button type="submit" class="btn-primary" data-testid="button-save-category">Salvar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Goal Modal -->
+        <div id="goal-modal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2>Adicionar Meta</h2>
+                    <button class="close-btn" data-testid="button-close-goal" onclick="closeModal('goal-modal')">&times;</button>
+                </div>
+                <form id="goal-form" data-testid="form-goal">
+                    <div class="form-group">
+                        <label for="goal-name">Nome da Meta:</label>
+                        <input type="text" id="goal-name" data-testid="input-goal-name" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="goal-target">Valor Alvo:</label>
+                        <input type="number" id="goal-target" data-testid="input-goal-target" step="0.01" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="goal-current">Valor Atual:</label>
+                        <input type="number" id="goal-current" data-testid="input-goal-current" step="0.01" value="0">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="goal-deadline">Data Limite:</label>
+                        <input type="date" id="goal-deadline" data-testid="input-goal-deadline">
+                    </div>
+                    
+                    <div class="form-actions">
+                        <button type="button" class="btn-secondary" data-testid="button-cancel-goal" onclick="closeModal('goal-modal')">Cancelar</button>
+                        <button type="submit" class="btn-primary" data-testid="button-save-goal">Salvar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
